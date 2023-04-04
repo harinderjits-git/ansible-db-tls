@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+  become_user: oracle
+  pre_tasks:
+    - name: include env vars
+      include_vars: "../vars/{{ stackEnv }}/{{ stackInstName }}.yml"
+      tags: ["always"]
+  roles:
+    #loads variables as per instance-name.yml for db tier
+    - role: setvars
+      tags: always
+    #To apply oracle_cert_rotation
+    - role: oracle_cert_rotation

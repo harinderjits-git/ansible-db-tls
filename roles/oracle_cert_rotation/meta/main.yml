@@ -1,0 +1,7 @@
+---
+
+dependencies:
+  - role: wsl_prereqs
+    tags: always
+  - role: config_db_tns
+    tags: cert_rotation

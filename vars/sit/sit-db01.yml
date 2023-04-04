@@ -1,0 +1,13 @@
+---
+# can be PRIMARYDB or DBDR
+db_type: "PRIMARYDB"
+db_unique_name: "sitdb_prim"
+oracle_home: '/u01/app/oracle/product/19.3.0/db_1'
+oracle_base: '/u01/app/oracle'
+ora_inv: '/u01/app/oraInventory'
+
+scripts_top: "/u01/scripts"
+db_env: 'sit'
+db_cdb_name: "SITDB"
+standby_configured: "false"
+wallet_passwd: "walletpassword"

@@ -1,0 +1,85 @@
+---
+- name: "Configure  wallet directory"
+  file:
+    state: "directory"
+    path: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0755"
+
+- name: "check backup of {{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns"
+  shell:
+    cmd: |
+      if [ -f "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns.gz" ]
+      then
+        echo "EXISTS"
+      else 
+        echo "NOBACKUP"
+      fi
+  register: check_existence
+
+- debug:
+    var: check_existence
+
+- name: backup older wallet
+  archive:
+    dest: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns.gz"
+    path: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns"
+    owner: oracle
+    group: oinstall
+  when: ( "NOBACKUP" in check_existence.stdout )
+
+- name: "Configure new wallet directory"
+  file:
+    state: "directory"
+    path: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0755"
+
+- name: "Copy the cert_rotation  scripts"
+  copy:
+    src: "wallet/ewallet1.p12"
+    dest: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0755"
+
+
+- debug:
+    var: passwd.stdout_lines
+
+- name: create new wallet using orapki
+  shell:
+    cmd: |
+      source ~/{{ db_cdb_name }}.env
+      cd "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new" &&
+      orapki wallet create -wallet "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new" -pwd {{ wallet_passwd }} -auto_login &&
+      orapki wallet import_pkcs12 -wallet "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new" -pkcs12file ewallet1.p12 -pwd {{ wallet_passwd }} -pkcs12pwd {{ wallet_passwd }}
+      orapki wallet display -wallet "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new"
+  register: cert_import
+
+- debug:
+    var: cert_import.stdout
+
+- name: "replace the wallet files in original wallet with new"
+  copy:
+    src: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new/"
+    dest: "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns/"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0755"
+    remote_src: yes
+  when:
+    - ("Operation is successfully completed" in cert_import.stdout)
+    - ("import_pkcs12 executed successfully" in cert_import.stdout)
+  notify: "restart_listener"
+
+- name: "cleanup on server"
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns.gz"
+    - "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns_new"
+    - "{{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns/ewallet1.p12"

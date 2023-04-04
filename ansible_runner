@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -e
+export ansible_root=$(pwd)
+export ANSIBLE_CONFIG=${ansible_root}/ansible.cfg
+export ANSIBLE_FORCE_COLOR=true
+# Usage info
+show_help() {
+  cat <<EOF
+Usage: ${0##*/} [ playbook stackInstName "<tags>"]
+            playbook: playbook  name without ".yml"  
+            stackInstName: stackInstName like orclqa2 or a hostname in case stackService is a host
+            tags: list of tags in ""
+EOF
+}
+
+if (($# < 2)); then
+  show_help
+  exit
+fi
+
+#playbook name without ".yml"
+playbook=$1
+# #stackInstName= sit-db01 (instancename)
+stackInstName=$2
+
+# #stackEnv = prod or uat or sit
+stackEnv=$(echo $stackInstName | cut -d'-' -f1)
+tags=$3
+
+target="${stackInstName}"
+
+if [[ -z "${tags}" ]]; then
+  ansible-playbook ${ansible_root}/playbooks/${playbook}.yml -i inventory/${stackEnv}.yml -l $target \
+    --extra-vars  "stackEnv=${stackEnv}  stackInstName=${stackInstName}" --check --diff
+else
+  ansible-playbook ${ansible_root}/playbooks/${playbook}.yml -i inventory/${stackEnv}.yml -l $target \
+    --extra-vars  "stackEnv=${stackEnv}  stackInstName=${stackInstName}" --tags=$tags
+fi
+#env of main block

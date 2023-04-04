@@ -1,0 +1,13 @@
+---
+# handlers file for oracle_cert_rotation
+- name : restart_listener
+  shell:
+    cmd: |
+      source ~/{{ db_cdb_name }}.env
+      lsnrctl stop listener
+      lsnrctl start listener
+      lsnrctl status listener
+  register: restart_listener
+
+- debug:
+    var: restart_listener.stdout

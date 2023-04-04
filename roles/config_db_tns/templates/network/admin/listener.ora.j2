@@ -1,0 +1,29 @@
+#managed by ansible
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = {{ ansible_nodename }})(PORT = 1521))
+      (ADDRESS = (PROTOCOL = TCPS)(HOST = {{ ansible_nodename }})(PORT = 6028))
+    )
+  )
+
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (GLOBAL_DBNAME = {{ db_unique_name | upper }}_DGMGRL)
+      (ORACLE_HOME = {{ oracle_home }})
+      (SID_NAME = {{ db_cdb_name | upper }})
+    )
+  )
+
+SSL_CLIENT_AUTHENTICATION = FALSE
+WALLET_LOCATION =
+  (SOURCE =
+    (METHOD = FILE)
+    (METHOD_DATA =
+  (DIRECTORY = {{ oracle_base }}/admin/{{ db_unique_name | upper }}/wallet/tns)
+    )
+  )
+
+ADR_BASE_LISTENER = {{ oracle_base }}
+ADMIN_RESTRICTIONS_LISTENER = ON

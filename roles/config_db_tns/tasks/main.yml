@@ -1,0 +1,36 @@
+---
+# tasks file for config_tns
+
+
+- name: "Load {{ stackInstName }} instance-specific variables if present"
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "../../../vars/{{ stackEnv }}/{{ stackInstName }}.yml"
+      skip: True
+  
+
+- name: "Render the oracle listener configuration file"
+  template:
+    src: "network/admin/listener.ora.j2"
+    dest: "{{ oracle_home }}/network/admin/listener.ora"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0644"
+  # notify: restart_listener
+
+- name: "Render the oracle sqlnet configuration file"
+  template:
+    src: "network/admin/sqlnet.ora.j2"
+    dest: "{{ oracle_home }}/network/admin/sqlnet.ora"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0644"
+
+- name: "Render the oracle tnsnames configuration file"
+  template:
+    src: "network/admin/tnsnames.ora.j2"
+    dest: "{{ oracle_home }}/network/admin/tnsnames.ora"
+    owner: "oracle"
+    group: "oinstall"
+    mode: "0644"

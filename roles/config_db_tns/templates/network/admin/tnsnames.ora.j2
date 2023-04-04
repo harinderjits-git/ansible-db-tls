@@ -1,0 +1,36 @@
+#managed by ansible
+{{ db_cdb_name | upper }} =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = {{  ansible_fqdn  }})(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SID = {{ db_cdb_name | upper }})
+    )
+  )
+
+
+{{ db_cdb_name | upper }}_PRIM =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = {{  ansible_fqdn  }})(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ db_cdb_name | upper }}_PRIM)
+    )
+  )
+
+
+{{ db_cdb_name | upper }}_PRIM_SSL =
+  (DESCRIPTION =
+    (SECURITY=(SSL_SERVER_CERT_DN="CN=*.myorg.local"))
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCPS)(HOST = {{  ansible_fqdn  }})(PORT = 6028))
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ db_cdb_name | upper }}_PRIM)
+    )
+  )
